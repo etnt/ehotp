@@ -7,17 +7,23 @@
 -export([hotp_6/2
          ,hotp_7/2
          ,hotp_8/2
+         ,unlock_key/2
+         ,generate_random_key/0
         ]).
 
 -export([test/0]).
 
+generate_random_key() -> tbd. % FIXME
+    
+unlock_key(Pin, Lkey) -> tbd. % FIXME Pin xor Lkey
+    
 
 hotp_6(Key, Cnt) -> hotp(Key, Cnt, 6).
 hotp_7(Key, Cnt) -> hotp(Key, Cnt, 7).
 hotp_8(Key, Cnt) -> hotp(Key, Cnt, 8).
 
-hotp(Key, Cnt, N) -> 
-    'Truncate'(crypto:sha_mac(Key, Cnt), N).
+hotp(Key, Cnt, N) when is_binary(Key), is_integer(Cnt), is_integer(N) -> 
+    'Truncate'(crypto:sha_mac(Key, <<Cnt:64>>), N).
 
 'Truncate'(Mac, N) ->
     <<_:19/bytes, _:4/bits, Offset:4>> = Mac,
