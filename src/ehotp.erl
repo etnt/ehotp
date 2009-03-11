@@ -24,14 +24,13 @@
          ,generate_pin_code/0
          ,new/0
          ,uid/1, uid/2
-         ,pin/1, pin/2
          ,lkey/1, lkey/2
          ,cnt/1, cnt/2
          ,fail/1, fail/2
          ,foldf/2
         ]).
 
--export([test/0]).
+-export([test/0, t/1]).
 
 -include("ehotp.hrl").
 
@@ -44,10 +43,6 @@ new() -> #ehotp{}.
 uid(#ehotp{uid=Uid}) -> Uid;
 uid(Uid) -> fun(E) -> uid(Uid, E) end.
 uid(Uid, E) when is_record(E,ehotp) -> E#ehotp{uid=Uid}.
-
-pin(#ehotp{pin=Pin}) -> Pin;
-pin(Pin) -> fun(E) -> pin(Pin, E) end.
-pin(Pin, E) when is_record(E,ehotp) -> E#ehotp{pin=Pin}.
     
 lkey(#ehotp{lkey=Lkey}) -> Lkey;
 lkey(Lkey) -> fun(E) -> lkey(Lkey, E) end.
@@ -63,6 +58,8 @@ fail(Fail, E) when is_record(E,ehotp) -> E#ehotp{fail=Fail}.
 
 foldf(Fs, E) -> lists:foldl(fun(F,D) -> F(D) end, E, Fs).
                                     
+in(E) when is_record(E, ehotp) -> ehotp_srv:in(E).
+verify(Uid,Pin,OTP) -> ehotp_srv:verify(Uid,Pin,OTP).
     
 
 %%% @doc Make sure the crypto application also is started.
@@ -124,10 +121,23 @@ n(6) -> 1000000;
 n(7) -> 10000000;
 n(8) -> 100000000.
     
-urandom(N) when is_integer(N) ->
-    list_to_binary(os:cmd("dd if=/dev/urandom ibs="++
-                          integer_to_list(N)++
-                          " count=1 2>/dev/null")).
+urandom(N) when is_integer(N) andalso N > 0 ->
+    Cmd = "dd if=/dev/urandom ibs="++integer_to_list(N)++" count=1 2>/dev/null",
+    case os:cmd(Cmd) of
+        L when length(L) == N -> 
+            list_to_binary(L);
+
+        L when length(L) > N  -> 
+            {L1,_} = lists:split(N, L),
+            list_to_binary(L1);
+
+        L when length(L) < N ->
+            B1 = list_to_binary(L),
+            B2 = urandom(N-length(L)),
+            <<B1/binary, B2/binary>>
+    end;
+urandom(0) ->
+    <<"">>.
 
 %%% @doc Unit Tests
 %%% @private
@@ -140,7 +150,30 @@ t(4) ->
     Key = generate_random_key(),
     Pin = generate_pin_code(),
     Lkey = lock_key(Pin, Key),
-    Key == unlock_key(Pin, Lkey).
+    Key == unlock_key(Pin, Lkey);
+t(5) ->
+    Uid = "etnt",
+    Key = generate_random_key(),
+    Pin = generate_pin_code(),
+    Lkey = lock_key(Pin, Key),
+    E = foldf([uid("etnt")
+               ,lkey(Lkey)
+              ], new()),
+    ok = in(E),
+    Cnt = cnt(E),
+    OTP = hotp_6(Key, Cnt),
+    io:format("Pin=~p, Cnt=~p, OTP=~p~n",[Pin,Cnt,OTP]),
+    true = verify(Uid,Pin,OTP),
+    OTP2 = hotp_6(Key, Cnt+1),
+    io:format("Pin=~p, Cnt=~p, OTP=~p~n",[Pin,Cnt+1,OTP2]),
+    true = verify(Uid,Pin,OTP2),
+    OTP3 = hotp_6(Key, Cnt+2),
+    io:format("Pin=~p, Cnt=~p, OTP=~p~n",[Pin,Cnt+2,OTP3]),
+    true = verify(Uid,Pin,OTP3),
+    OTP4 = hotp_6(Key, Cnt+3),
+    io:format("Pin=~p, Cnt=~p, OTP=~p~n",[Pin,Cnt+3,OTP4]),
+    true = verify(Uid,Pin,OTP4).
+
 
 b() ->
     <<16#1f,16#86,16#98,16#69,16#0e,16#02,16#ca,16#16,16#61,16#85,

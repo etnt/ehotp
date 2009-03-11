@@ -14,6 +14,6 @@
 %% @end
 %%--------------------------------------------------------------------
 behaviour_info(callbacks) ->
-    [{init,0}, {in,1}, {out,1}];
+    [{init,0}, {in,2}, {out,2}];
 behaviour_info(_Other) ->
     undefined.

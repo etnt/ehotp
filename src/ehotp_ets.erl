@@ -9,32 +9,30 @@
 -behaviour(ehotp_backend).
 
 -export([init/0
-         ,in/1
-         ,out/1
+         ,in/2
+         ,out/2
         ]).
 
 -include("ehotp.hrl").
 
 -define(TABLE, ?MODULE).
 
--record(ehotp_ets, {
-           table
-          }).
 
 
 init() ->
-    #ehotp_ets{table = ets:new(?TABLE, [named_table
-                                        ,private
-                                        ,{keypos, #ehotp.uid}
-                                       ])}.
+     ets:new(?TABLE, [named_table
+                      ,private
+                      ,{keypos, #ehotp.uid}
+                     ]).
 
-in(X) when is_record(X, ehotp) ->
-    ets:insert(?TABLE, X).
+in(R, X) when is_record(X, ehotp) ->
+    ets:insert(?TABLE, X),
+    R.
 
-out(Key) ->
+out(R, Key) ->
     case ets:lookup(?TABLE, Key) of
-        [X] -> {ok, X};
-        _   -> {error, not_found}
+        [X] -> {R, {ok, X}};
+        _   -> {R, {error, not_found}}
     end.
             
     
