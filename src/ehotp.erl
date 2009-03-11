@@ -1,4 +1,7 @@
 %%%-------------------------------------------------------------------
+%%% Copyright (c) 2009 Torbjorn Tornkvist
+%%% See the (MIT) LICENSE file for licensing information.
+%%%
 %%% Created : 10 Mar 2009 by Torbjorn Tornkvist <tobbe@tornkvist.org>
 %%% Desc.   : Implementation of RFC 4226, HOTP.
 %%% 
