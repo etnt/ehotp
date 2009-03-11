@@ -12,3 +12,13 @@ based on One-Time Passwords (OTPs).
 The basic idea is to authenticate a user with a personal
 PIN code + an OTP that the user has generated.
 
+
+# INSTALL
+
+Clone it and run: make.
+
+
+# RUN
+
+    erl -pa ./ebin -s ehotp
+

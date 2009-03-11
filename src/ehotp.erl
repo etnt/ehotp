@@ -65,7 +65,9 @@ verify(Uid,Pin,OTP) -> ehotp_srv:verify(Uid,Pin,OTP).
 %%% @doc Make sure the crypto application also is started.
 %%%
 start() ->
-    crypto:start().
+    application:start(crypto),
+    application:start(ehotp).
+    
 
 %%% @doc Generate a 6 figures HOTP number
 %%%
