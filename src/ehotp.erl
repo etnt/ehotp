@@ -22,9 +22,48 @@
          ,unlock_key/2
          ,generate_random_key/0
          ,generate_pin_code/0
+         ,new/0
+         ,uid/1, uid/2
+         ,pin/1, pin/2
+         ,lkey/1, lkey/2
+         ,cnt/1, cnt/2
+         ,fail/1, fail/2
+         ,foldf/2
         ]).
 
 -export([test/0]).
+
+-include("ehotp.hrl").
+
+%%%
+%%% ADT access primitives
+%%%
+
+new() -> #ehotp{}.
+
+uid(#ehotp{uid=Uid}) -> Uid;
+uid(Uid) -> fun(E) -> uid(Uid, E) end.
+uid(Uid, E) when is_record(E,ehotp) -> E#ehotp{uid=Uid}.
+
+pin(#ehotp{pin=Pin}) -> Pin;
+pin(Pin) -> fun(E) -> pin(Pin, E) end.
+pin(Pin, E) when is_record(E,ehotp) -> E#ehotp{pin=Pin}.
+    
+lkey(#ehotp{lkey=Lkey}) -> Lkey;
+lkey(Lkey) -> fun(E) -> lkey(Lkey, E) end.
+lkey(Lkey, E) when is_record(E,ehotp) -> E#ehotp{lkey=Lkey}.
+
+cnt(#ehotp{cnt=Cnt}) -> Cnt;
+cnt(Cnt) -> fun(E) -> cnt(Cnt, E) end.
+cnt(Cnt, E) when is_record(E,ehotp) -> E#ehotp{cnt=Cnt}.
+
+fail(#ehotp{fail=Fail}) -> Fail;
+fail(Fail) -> fun(E) -> fail(Fail, E) end.
+fail(Fail, E) when is_record(E,ehotp) -> E#ehotp{fail=Fail}.
+
+foldf(Fs, E) -> lists:foldl(fun(F,D) -> F(D) end, E, Fs).
+                                    
+    
 
 %%% @doc Make sure the crypto application also is started.
 %%%
