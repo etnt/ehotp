@@ -100,8 +100,13 @@ generate_random_key() ->
 %%% @doc Encrypt (lock) the key using the Pin code.    
 %%%
 lock_key(Pin, Key) when is_binary(Key) -> 
-    Pin2 = Pin*Pin*Pin,
-    PinB = crypto:sha_mac(<<Pin:16>>, <<Pin2:32>>),
+    Salt = integer_to_list(Pin*Pin) ++ ehotp_app:get_env(salt, ""),
+    lock_key(Pin, Key, list_to_binary(Salt)).
+
+lock_key(Pin, Key, Salt) when is_list(Salt) -> 
+    lock_key(Pin, Key, list_to_binary(Salt));
+lock_key(Pin, Key, Salt) when is_binary(Key), is_binary(Salt) -> 
+    PinB = crypto:sha_mac(<<Pin:16>>, <<Salt/binary>>),
     crypto:exor(PinB, Key).
 
 %%% @doc Decrypt (unlock) the key using the Pin code.    
